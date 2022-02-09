@@ -90,6 +90,10 @@ class PurchaseRequest extends AbstractRequest
 
     public function getDueDate()
     {
+        $dueDate = $this->getParameter('dueDate');
+        if($dueDate)
+            return $dueDate;
+
         $time = localtime(time());
         $ano = $time[5]+1900;
         $mes = $time[4]+1+1;
@@ -100,6 +104,14 @@ class PurchaseRequest extends AbstractRequest
             ++$ano;
         }
 
-        return  sprintf("%04d-%02d-%02d", $ano, $mes, $dia);
+        $dueDate = sprintf("%04d-%02d-%02d", $ano, $mes, $dia);
+        $this->setDueDate($dueDate);
+
+        return $dueDate;
+    }
+
+    public function setDueDate($value)
+    {
+        return $this->setParameter('dueDate', $value);
     }
 }
