@@ -39,7 +39,7 @@ class Response extends AbstractResponse
      *
      * @return string|null
      */
-    public function getTransactionReference()
+    public function getTransactionID()
     {
         if(isset($this->data['id']))
             return @$this->data['id'];
@@ -72,13 +72,25 @@ class Response extends AbstractResponse
     public function isPaid()
     {
         $status = $this->getStatus();
-        return strcmp($status, "CONFIRMED")==0;
+        return ((strcmp($status, "RECEIVED")==0)||(strcmp($status, "CONFIRMED")==0));
     }
 
     public function isAuthorized()
     {
         $status = $this->getStatus();
         return strcmp($status, "AUTHORIZED")==0;
+    }
+
+    public function isPending()
+    {
+        $status = $this->getStatus();
+        return strcmp($status, "PENDING")==0;
+    }
+
+    public function isVoided()
+    {
+        $status = $this->getStatus();
+        return ((strcmp($status, "REFUNDED")==0)||(strcmp($status, "REFUND_REQUESTED")==0));
     }
 
     /**
@@ -105,5 +117,34 @@ class Response extends AbstractResponse
         }
 
         return null;
+    }
+
+    public function getBoleto()
+    {
+        $data = $this->getData();
+        $boleto = array();
+        $boleto['boleto_url'] = @$data['invoiceUrl'];
+        $boleto['boleto_url_pdf'] = @$data['bankSlipUrl'];
+        $boleto['boleto_barcode'] = NULL;
+        $boleto['boleto_expiration_date'] = @$data['dueDate'];
+        $boleto['boleto_valor'] = @$data['value'];
+        $boleto['boleto_transaction_id'] = @$data['id'];
+        //@$this->setTransactionReference(@$data['transaction_id']);
+
+        return $boleto;
+    }
+
+    public function getPix()
+    {
+        $data = $this->getData();
+        $boleto = array();
+        $boleto['pix_qrcodebase64image'] = NULL;
+        $boleto['pix_qrcodestring'] = NULL;
+        $boleto['pix_valor'] = @$data['value'];
+        $boleto['pix_externalurl'] = @$data['invoiceUrl'];
+        $boleto['pix_transaction_id'] = @$data['id'];
+        //@$this->setTransactionReference(@$data['transaction_id']);
+
+        return $boleto;
     }
 }

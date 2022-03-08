@@ -12,6 +12,8 @@ class PurchaseRequest extends AbstractRequest
 
     public function getData()
     {
+        $this->validate('customer', 'paymentType');
+
         // faz o registro do cliente, se não houver especificado
         if(strlen($this->getCustomerId()) <= 0)
         {
@@ -19,99 +21,32 @@ class PurchaseRequest extends AbstractRequest
             $cl->initialize($this->parameters->all());
             $result = $cl->sendData($cl->getData());
             if ($result->isSuccessful())
-                $this->setCustomerId($result->getTransactionReference());
+                $this->setCustomerId($result->getTransactionID());
         }
 
         $this->validate('customer_id');
 
-        $card = $this->getCard();
+        $data = [];
+        switch(strtolower($this->getPaymentType()))
+        {
+            case 'creditcard':
+                $data = $this->getDataCreditCard();
+                break;
 
-        $data = [
-            "customer"=> $this->getCustomerId(),
-            "billingType"=> "CREDIT_CARD",
-            "dueDate"=> $this->getDueDate(), // vencimento
-            "value"=> $this->getAmount(),
-            "description"=> "Compra em ".$this->getSoftDescriptor(),
-            "externalReference"=> $this->getOrderId(),
-            "installmentCount"=> $this->getInstallments(),
-            "installmentValue"=> (float)($this->getAmount()/$this->getInstallments()),
-            "creditCard"=> [
-                "holderName"=> $card->getName(),
-                "number"=> $card->getNumber(),
-                "expiryMonth"=> sprintf("%02d", $card->getExpiryMonth()*1),
-                "expiryYear"=> $card->getExpiryYear(),
-                "ccv"=> $card->getCvv()
-            ],
-            "creditCardHolderInfo" => [
-                "name"=> $card->getName(),
-                "email"=> $card->getEmail(),
-                "cpfCnpj"=> $card->getHolderDocumentNumber(),
-                "postalCode"=> $card->getShippingPostcode(),
-                "addressNumber"=> $card->getHolderDocumentNumber(),
-                "addressComplement"=> $card->getShippingAddress2(),
-                "phone"=> $card->getPhone(),
-                "mobilePhone"=> $card->getPhone()
-            ]
-        ];
+            case 'boleto':
+                $data = $this->getDataBoleto();
+                break;
+
+            case 'pix':
+                $data = $this->getDataPix();
+                break;
+
+            default:
+                $data = $this->getDataCreditCard();
+        }
+
         //$this->getNotifyUrl()  // verificar se no painel é especificado uma url para notificação
 
         return $data;
-    }
-
-    public function getShippingType()
-    {
-        return $this->getParameter('shippingType');
-    }
-
-    public function setShippingType($value)
-    {
-        return $this->setParameter('shippingType', $value);
-    }
-
-    public function getShippingCost()
-    {
-        return $this->getParameter('shippingCost');
-    }
-
-    public function setShippingCost($value)
-    {
-        return $this->setParameter('shippingCost', $value);
-    }
-
-    public function getCustomer()
-    {
-        return $this->getParameter('customer');
-    }
-
-    public function setCustomer($value)
-    {
-        return $this->setParameter('customer', $value);
-    }
-
-    public function getDueDate()
-    {
-        $dueDate = $this->getParameter('dueDate');
-        if($dueDate)
-            return $dueDate;
-
-        $time = localtime(time());
-        $ano = $time[5]+1900;
-        $mes = $time[4]+1+1;
-        $dia = 1;// $time[3];
-        if($mes>12)
-        {
-            $mes=1;
-            ++$ano;
-        }
-
-        $dueDate = sprintf("%04d-%02d-%02d", $ano, $mes, $dia);
-        $this->setDueDate($dueDate);
-
-        return $dueDate;
-    }
-
-    public function setDueDate($value)
-    {
-        return $this->setParameter('dueDate', $value);
     }
 }
