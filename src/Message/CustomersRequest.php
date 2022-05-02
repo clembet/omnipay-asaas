@@ -8,22 +8,22 @@ class CustomersRequest extends AbstractRequest   // /cancels é utilizado em pag
 
     public function getData()
     {
-        $card = $this->getCard();
-        //$this->validate('amount');
+        $this->validate('customer');
+        $customer = $this->getCustomer();
         //$data = parent::getData();
         $data = [
-            "name"=> $card->getName(),
-            "email"=> $card->getEmail(),
-            "phone"=> $card->getPhone(),
-            "mobilePhone"=> $card->getPhone(),
-            "cpfCnpj"=> $card->getHolderDocumentNumber(),
-            "postalCode"=> $card->getShippingPostcode(),
-            "address"=> $card->getShippingAddress1(),
-            "addressNumber"=> $card->getShippingNumber(),
-            "complement"=> $card->getShippingAddress2(),
-            "city"=> $card->getShippingCity(),
-            "state"=> $card->getShippingState(),
-            "province"=> $card->getShippingDistrict(),
+            "name"=> $customer->getName(),
+            "email"=> $customer->getEmail(),
+            "phone"=> $customer->getPhone(),
+            "mobilePhone"=> $customer->getPhone(),
+            "cpfCnpj"=> $customer->getDocumentNumber(),
+            "postalCode"=> $customer->getShippingPostcode(),
+            "address"=> $customer->getShippingAddress1(),
+            "addressNumber"=> $customer->getShippingNumber(),
+            "complement"=> $customer->getShippingAddress2(),
+            "city"=> $customer->getShippingCity(),
+            "state"=> $customer->getShippingState(),
+            "province"=> $customer->getShippingDistrict(),
             "notificationDisabled"=> true
         ];
 
